@@ -18,7 +18,7 @@ The PaypalRestAPI class integrates PayPal’s REST API for payment processing in
     $clientId = 'AYOjBBa1DVAzyPWU5wQqImLPPfarEKPsEnXHPEyNEbgxPMX8zuVqqTLkQe_CBJRE-EzWS59QWdmYlDlc';
     $clientSecret = 'EIxwxlsxQ_wHkNkxdkv7UJG8EY91-BjiG2qT7T6DkeYRMXT8gHLVT9KgAblbxLEYEQPCPVUQhGjhELpb';
     
-    // goto paypal
+    // init paypal
     $PaypalRestAPI = new PaypalRestAPI($clientId, $clientSecret, true);
     
     // add item once by once
