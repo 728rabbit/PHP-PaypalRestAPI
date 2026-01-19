@@ -74,7 +74,7 @@ class PaypalRestAPI {
     
     protected $_return_url = '';
     protected $_cancel_url = '';
-    protected $_end_point = 'https://api.paypal.com/v1';
+    protected $_end_point = 'https://api-m.paypal.com/v1';
 
     protected $_transaction_id = '';
 
@@ -83,7 +83,7 @@ class PaypalRestAPI {
         $this->_clientSecret = $clientSecret;
         $this->_sandboxMode = $sandboxMode;
         if(!empty($this->_sandboxMode)) {
-            $this->_end_point = 'https://api.sandbox.paypal.com/v1';
+            $this->_end_point = 'https://api-m.sandbox.paypal.com/v1';
         }
     }
 
@@ -91,11 +91,12 @@ class PaypalRestAPI {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->_end_point.'/oauth2/token');
         curl_setopt($ch, CURLOPT_HEADER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_USERPWD, $this->_clientId.':'.$this->_clientSecret);
         curl_setopt($ch, CURLOPT_POSTFIELDS, 'grant_type=client_credentials');
+		curl_setopt($ch, CURLOPT_TIMEOUT, 60);
         
         $response = curl_exec($ch);
         if (curl_errno($ch)) {
@@ -115,8 +116,16 @@ class PaypalRestAPI {
     }
     
     public function addItem($data = []) {
-        if(!empty($data)) {
-            $this->_checkout_items = array_merge($this->_checkout_items, [$data]);
+        if(!empty($data) && !empty($data['name'])) {
+			$price = max(0, (float)$data['price'] ?? 0);
+			$qty = max(0, (int)$data['quantity'] ?? 1);
+            $this->_checkout_items = array_merge($this->_checkout_items, [
+				[
+					'name'      =>  $data['name'],
+					'price'     =>  round((double)max(0, $price), 2),
+					'quantity'  =>  $qty
+				]
+			]);
         }
         return $this;
     }
@@ -213,6 +222,7 @@ class PaypalRestAPI {
                 'Authorization: Bearer '.$access_token
             ]);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payment));
+			curl_setopt($ch, CURLOPT_TIMEOUT, 60);
             
             $response = curl_exec($ch);
             if (curl_errno($ch)) {
